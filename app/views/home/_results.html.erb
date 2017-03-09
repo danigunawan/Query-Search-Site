@@ -1,0 +1,18 @@
+<h4>Number of Results: <%= count %></h4>
+<table>
+  <thead>
+    <th>User</th>
+    <th>Message</th>
+    <th>Created Time</th>
+  </thead>
+  <tbody>
+    <% tweets.each do |tweet| %>
+      <tr>
+        <td><%= tweet.user.screen_name %></td>
+        <td><%= tweet.full_text %></td>
+        <td><%= tweet.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+      </tr>
+    <% end %>
+  </body>
+</table>
+<%= paginate tweets, remote: true %>

@@ -1,0 +1,13 @@
+<% if @error.blank? %>
+  <% if @partial_results.present? %>
+    <% if @graph_data.present? %>
+      $('#results').empty().append("<%= escape_javascript(render partial: 'home/results_graph', locals: { data: @graph_data } )%>");
+    <% end %>
+    $('#results').append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results, query: params[:search], count: @total_results } ) %>");
+  <% else %>
+    $('#results').empty().html("No Results Found");
+  <% end %>
+<% else %>
+  $('#results').empty().html("<%= @error %>");
+<% end %>
+$('#results').append("<%= escape_javascript(render partial: 'home/engine_results', locals: { query: params[:search], google_results: @google_results, google_page: @google_page }) %>")

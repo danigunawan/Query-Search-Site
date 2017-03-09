@@ -1,0 +1,12 @@
+<% if google_page.to_i > 1 %>
+  <%= link_to 'Prev', page_google_results_home_index_path(start: google_page.to_i - 10, search: query), remote: true %>
+<% end %>
+<% if google_results['queries']['nextPage'].present? %>
+  <%= link_to 'Next', page_google_results_home_index_path(start: google_page.to_i + 10, search: query), remote: true %>
+<% end %>
+<br/><br/>
+<% google_results['items'].each_with_index do |result, index| %>
+  <div id='google-result-<%= "#{index}" %>'>
+    <%= link_to result['title'], result['link'] %><br/>
+  </div>
+<% end %>

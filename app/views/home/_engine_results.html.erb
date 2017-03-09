@@ -1,0 +1,13 @@
+<div class='bing-results'>
+  <h3>Results from Bing Search</h3>
+  <div class='bing-results-container'>
+    <%= render partial: 'home/bing_results', locals: {query: query} %>
+  </div>
+</div>
+<br/><br/>
+<div class='google-results'>
+  <h3>Results from Google Custom Search</h3>
+  <div class='google-results-container'>
+    <%= render partial: 'home/google_results', locals: { google_results: google_results, google_page: google_page.to_i, query: query } %>
+  </div>
+</div>
