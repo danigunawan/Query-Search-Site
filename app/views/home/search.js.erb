@@ -10,4 +10,6 @@
 <% else %>
   $('#results').empty().html("<%= @error %>");
 <% end %>
+<% if params[:search].present? %>
 $('#results').append("<%= escape_javascript(render partial: 'home/engine_results', locals: { query: params[:search], google_results: @google_results, google_page: @google_page }) %>")
+<% end %>

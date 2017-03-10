@@ -9,19 +9,28 @@ class HomeController < ApplicationController
   def search
     if @client.present?
       if params[:search].present?
-        curr_time = Time.now
-        prev_time = Time.now - 24.hours
+        curr_time = Date.parse(params[:to]).strftime("%Y-%m-%d")
+        prev_time = Date.parse(params[:from]).strftime("%Y-%m-%d")
+        @user_query = "#{params[:search]} since:#{prev_time}"
+
         begin
-          results = @client.search(params[:search], since: prev_time.strftime("%Y-%m-%d"), until: curr_time.strftime("%Y-%m-%d"), result_type: 'recent', lang: 'ja')
+          results = if curr_time != prev_time
+            @client.search(@user_query, until: curr_time, result_type: 'recent', lang: 'ja')
+          else
+            @client.search(@user_query, result_type: 'recent', lang: 'ja')
+          end
         rescue Twitter::Error::TooManyRequests
           results = nil
           @error = "Twitter Error: Too Many Requests"
         end
-        if results.present?
+
+        if results.present? && results.is_a?(Twitter::SearchResults)
           @total_results = results.count
-          @graph_data = get_graph_data(results)
+          @graph_data = params[:show_zero].present? ? get_graph_data(results, prev_time, curr_time) : get_graph_data(results)
         end
+
         @partial_results = Kaminari.paginate_array(results.to_a).page(params[:page]).per(20)
+
         @google_results, @google_page = get_google_results(params[:search])
       else
         @error = "No Search Query"
@@ -46,13 +55,23 @@ class HomeController < ApplicationController
     return JSON.parse(res.body), start
   end
 
-  def get_graph_data(tweets)
+  def get_graph_data(tweets, prev_time=nil, curr_time=nil)
     hours_hash = {}
     time_grouped = tweets.group_by{ |tweet| tweet.created_at.strftime('%Y-%m-%d %H') }
     time_grouped.each do |key, values|
-      time_grouped_hour = Time.parse(key).strftime('%H:%M')
+      time_grouped_hour = Time.parse(key).in_time_zone('Asia/Manila').strftime('%Y-%m-%d %H:%M')
       hours_hash[time_grouped_hour] = values.count
     end
+
+    unless prev_time == nil && curr_time == nil
+      prev_time = prev_time.to_datetime.in_time_zone('Asia/Manila').beginning_of_day.to_i
+      curr_time = curr_time.to_datetime.in_time_zone('Asia/Manila').end_of_day.to_i
+      (prev_time..curr_time).step(1.hour) do |hour_record|
+        check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M')
+        hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)
+      end
+    end
+
     hours_hash
   end
 

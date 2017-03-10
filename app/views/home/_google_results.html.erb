@@ -5,8 +5,13 @@
   <%= link_to 'Next', page_google_results_home_index_path(start: google_page.to_i + 10, search: query), remote: true %>
 <% end %>
 <br/><br/>
-<% google_results['items'].each_with_index do |result, index| %>
-  <div id='google-result-<%= "#{index}" %>'>
-    <%= link_to result['title'], result['link'] %><br/>
-  </div>
-<% end %>
+
+<div class="list-group">
+  <% google_results['items'].each_with_index do |result, index| %>
+    <div id='google-result-<%= "#{index}" %>' class='list-group-item'>
+      <%= link_to result['title'], result['link'] %><br/>
+      <p><%= result['link'] %></p>
+      <p><%= result['snippet'] %></p>
+    </div>
+  <% end %>
+</div>

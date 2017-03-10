@@ -14,6 +14,12 @@ Available Accounts:
 <%= form_tag search_home_index_path, id: 'search-form', method: :get, remote: true do %>
   <%= label_tag :search %>
   <%= text_field_tag :search %>
+  <%= label_tag :from %>
+  <%= date_field_tag(:from, (Date.today - 7.days), min: (Date.today - 7.days), max: Date.today, required: true) %>
+  <%= label_tag :to %>
+  <%= date_field_tag(:to, Date.today, min: (Date.today - 7.days), max: Date.today, required: true) %>
+  <%= label_tag :show_zero, "Show Zero Values" %>
+  <%= check_box_tag(:show_zero) %>
   <%= submit_tag "Search" %>
 <% end %>
 
