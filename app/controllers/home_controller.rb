@@ -19,17 +19,15 @@ class HomeController < ApplicationController
           else
             @client.search(@user_query, result_type: 'recent', lang: 'ja')
           end
+          if results.present?
+            @total_results = results.count
+            @graph_data = params[:show_zero].present? ? get_graph_data(results, prev_time, curr_time) : get_graph_data(results)
+          end
+          array_results = results.to_a
+          @partial_results = Kaminari.paginate_array(array_results).page(params[:page]).per(20)
         rescue Twitter::Error::TooManyRequests
-          results = nil
           @error = "Twitter Error: Too Many Requests"
         end
-
-        if results.present? && results.is_a?(Twitter::SearchResults)
-          @total_results = results.count
-          @graph_data = params[:show_zero].present? ? get_graph_data(results, prev_time, curr_time) : get_graph_data(results)
-        end
-
-        @partial_results = Kaminari.paginate_array(results.to_a).page(params[:page]).per(20)
 
         @google_results, @google_page = get_google_results(params[:search])
       else
@@ -57,21 +55,24 @@ class HomeController < ApplicationController
 
   def get_graph_data(tweets, prev_time=nil, curr_time=nil)
     hours_hash = {}
-    time_grouped = tweets.group_by{ |tweet| tweet.created_at.strftime('%Y-%m-%d %H') }
-    time_grouped.each do |key, values|
-      time_grouped_hour = Time.parse(key).in_time_zone('Asia/Manila').strftime('%Y-%m-%d %H:%M')
-      hours_hash[time_grouped_hour] = values.count
-    end
 
-    unless prev_time == nil && curr_time == nil
-      prev_time = prev_time.to_datetime.in_time_zone('Asia/Manila').beginning_of_day.to_i
-      curr_time = curr_time.to_datetime.in_time_zone('Asia/Manila').end_of_day.to_i
-      (prev_time..curr_time).step(1.hour) do |hour_record|
-        check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M')
-        hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)
+    begin
+      time_grouped = tweets.group_by{ |tweet| tweet.created_at.strftime('%Y-%m-%d %H') }
+      time_grouped.each do |key, values|
+        time_grouped_hour = Time.parse(key).in_time_zone('Asia/Manila').strftime('%Y-%m-%d %H:%M')
+        hours_hash[time_grouped_hour] = values.count
       end
-    end
 
+      unless prev_time == nil && curr_time == nil
+        prev_time = prev_time.to_datetime.in_time_zone('Asia/Manila').beginning_of_day.to_i
+        curr_time = curr_time.to_datetime.in_time_zone('Asia/Manila').end_of_day.to_i
+        (prev_time..curr_time).step(1.hour) do |hour_record|
+          check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M')
+          hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)
+        end
+      end
+    rescue Twitter::Error::TooManyRequests
+    end
     hours_hash
   end
 
