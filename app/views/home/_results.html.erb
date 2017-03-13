@@ -1,4 +1,11 @@
 <h4>Number of Results: <%= count %></h4>
+<% if prev_id.present? %>
+  <%= link_to "Prev 100 Results", search_home_index_path(max_id: prev_id, search: query, from: from_date, to: to_date, show_zero: show_zero), remote: true, class: 'pull-right' %>
+<% end %>
+<% if max_id.present? && results.last.id != max_id %>
+  <%= link_to "Next 100 Results", search_home_index_path(max_id: max_id, search: query, from: from_date, to: to_date, show_zero: show_zero), remote: true, class: 'pull-right' %>
+<% end %>
+<div class='clearfix'></div>
 <table class='table table-striped table-bordered'>
   <thead>
     <th>User</th>

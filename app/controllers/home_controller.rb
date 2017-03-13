@@ -15,10 +15,21 @@ class HomeController < ApplicationController
 
         begin
           results = if curr_time != prev_time
-            @client.search(@user_query, until: curr_time, result_type: 'recent', lang: 'ja')
+            if params[:max_id].present?
+              @client.search(@user_query, until: curr_time, result_type: 'recent', lang: 'ja', max_id: params[:max_id]).take(100)
+            else
+              @client.search(@user_query, until: curr_time, result_type: 'recent', lang: 'ja').take(100)
+            end
           else
-            @client.search(@user_query, result_type: 'recent', lang: 'ja')
+            if params[:max_id].present?
+              @client.search(@user_query, result_type: 'recent', lang: 'ja', max_id: params[:max_id]).take(100)
+            else
+              @client.search(@user_query, result_type: 'recent', lang: 'ja').take(100)
+            end
           end
+          @max_id = results.last.try(:id)
+          @prev_id = params[:max_id]
+
           if results.present?
             @total_results = results.count
             @graph_data = params[:show_zero].present? ? get_graph_data(results, prev_time, curr_time) : get_graph_data(results)
@@ -29,7 +40,7 @@ class HomeController < ApplicationController
           @error = "Twitter Error: Too Many Requests"
         end
 
-        @google_results, @google_page = get_google_results(params[:search])
+        #@google_results, @google_page = get_google_results(params[:search])
       else
         @error = "No Search Query"
       end
