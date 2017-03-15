@@ -1,48 +1,44 @@
 class HomeController < ApplicationController
+  before_action :set_client
   before_action :set_account
-  before_action :set_client, only: [:search]
 
   def index
     @accounts = Account.all
+    check_rate_limit if @client.present?
   end
 
   def search
     if @client.present?
-      if params[:search].present?
-        curr_time = Date.parse(params[:to]).strftime("%Y-%m-%d")
-        prev_time = Date.parse(params[:from]).strftime("%Y-%m-%d")
-        @user_query = "#{params[:search]} since:#{prev_time}"
+      if check_rate_limit
+        if params[:search].present?
+          curr_time = Date.parse(params[:to]).strftime("%Y-%m-%d")
+          prev_time = Date.parse(params[:from]).strftime("%Y-%m-%d")
+          @user_query = "#{params[:search]} since:#{prev_time}"
 
-        begin
-          results = if curr_time != prev_time
-            if params[:max_id].present?
-              @client.search(@user_query, until: curr_time, result_type: 'recent', lang: 'ja', max_id: params[:max_id]).take(100)
-            else
-              @client.search(@user_query, until: curr_time, result_type: 'recent', lang: 'ja').take(100)
+          conditions = {}
+          conditions[:result_type] = 'recent'
+          conditions[:lang] = 'ja'
+          conditions[:since_id] = params[:since_id] if params[:since_id].present?
+          conditions[:max_id] = params[:max_id] if params[:max_id].present?
+          conditions[:until] = curr_time if curr_time != prev_time
+          begin
+            results = @client.search(@user_query, conditions).take(100)
+            @next_page = results.last.try(:id)
+            if results.present?
+              @total_results = results.count
+              @graph_data = get_graph_data(results, prev_time, curr_time)
             end
-          else
-            if params[:max_id].present?
-              @client.search(@user_query, result_type: 'recent', lang: 'ja', max_id: params[:max_id]).take(100)
-            else
-              @client.search(@user_query, result_type: 'recent', lang: 'ja').take(100)
-            end
+            array_results = results.to_a
+            @partial_results = Kaminari.paginate_array(array_results).page(params[:page]).per(20)
+          rescue Twitter::Error::TooManyRequests
+            @error = "Twitter Error: Too Many Requests"
           end
-          @max_id = results.last.try(:id)
-          @prev_id = params[:max_id]
-
-          if results.present?
-            @total_results = results.count
-            @graph_data = params[:show_zero].present? ? get_graph_data(results, prev_time, curr_time) : get_graph_data(results)
-          end
-          array_results = results.to_a
-          @partial_results = Kaminari.paginate_array(array_results).page(params[:page]).per(20)
-        rescue Twitter::Error::TooManyRequests
-          @error = "Twitter Error: Too Many Requests"
+          @google_results, @google_page = get_google_results(params[:search])
+        else
+          @error = "No Search Query"
         end
-
-        #@google_results, @google_page = get_google_results(params[:search])
       else
-        @error = "No Search Query"
+        @error = "User Cannot Request Anymore. Wait 15 minutes"
       end
     else
       @error = "No Account Selected"
@@ -54,6 +50,24 @@ class HomeController < ApplicationController
   end
 
   private
+
+  def check_rate_limit
+    if rate_limit_status = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/application/rate_limit_status.json', resources: "application,search").perform
+      if rate_limit_status[:resources][:application].values.first[:remaining] > 0
+        puts "Remaining Application: #{rate_limit_status[:resources][:application].values.first[:remaining]}\n\nRemaining Search: #{rate_limit_status[:resources][:search].values.first[:remaining]}"
+
+        any_remaining = rate_limit_status[:resources][:search].values.first[:remaining] > 0
+        @account.update_attributes(searchable: any_remaining, restart: any_remaining ? nil : rate_limit_status[:resources][:search].values.first[:reset])
+        any_remaining
+      else
+        @account.update_attributes(searchable: false, restart: rate_limit_status[:resources][:search].values.first[:reset])
+        false
+      end
+    else
+      @account.update_attributes(searchable: false, restart: rate_limit_status[:resources][:application].values.first[:reset])
+      false
+    end
+  end
 
   def get_google_results(query, start=1)
     uri = URI('https://www.googleapis.com/customsearch/v1')
@@ -74,13 +88,11 @@ class HomeController < ApplicationController
         hours_hash[time_grouped_hour] = values.count
       end
 
-      unless prev_time == nil && curr_time == nil
-        prev_time = prev_time.to_datetime.in_time_zone('Asia/Manila').beginning_of_day.to_i
-        curr_time = curr_time.to_datetime.in_time_zone('Asia/Manila').end_of_day.to_i
-        (prev_time..curr_time).step(1.hour) do |hour_record|
-          check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M')
-          hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)
-        end
+      prev_time = prev_time.to_datetime.in_time_zone('Asia/Manila').beginning_of_day.to_i
+      curr_time = curr_time.to_datetime.in_time_zone('Asia/Manila').end_of_day.to_i
+      (prev_time..curr_time).step(1.hour) do |hour_record|
+        check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M')
+        hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)
       end
     rescue Twitter::Error::TooManyRequests
     end
@@ -89,7 +101,7 @@ class HomeController < ApplicationController
 
   def set_account
     @account = if current_account.present?
-      Account.find(current_account)
+      Account.find_by(id: current_account)
     else
       nil
     end

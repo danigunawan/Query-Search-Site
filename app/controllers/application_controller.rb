@@ -14,7 +14,7 @@ class ApplicationController < ActionController::Base
     if @client.present?
       @client
     else
-      if account = Account.where(id: current_account).first
+      if account = Account.find_by(id: current_account)
         @client = Twitter::REST::Client.new do |config|
           config.consumer_key        = Credentials::APP_KEY
           config.consumer_secret     = Credentials::APP_SECRET

@@ -1,25 +1,14 @@
 <h4>Number of Results: <%= count %></h4>
-<% if prev_id.present? %>
-  <%= link_to "Prev 100 Results", search_home_index_path(max_id: prev_id, search: query, from: from_date, to: to_date, show_zero: show_zero), remote: true, class: 'pull-left' %>
-<% end %>
-<% if max_id.present? && tweets.last.id != max_id %>
-  <%= link_to "Next 100 Results", search_home_index_path(max_id: max_id, search: query, from: from_date, to: to_date, show_zero: show_zero), remote: true, class: 'pull-right' %>
-<% end %>
+<%= link_to "See Older Results", search_home_index_path(max_id: next_page, search: query, from: from_date, to: to_date), remote: true, class: 'pull-right' %>
 <div class='clearfix'></div>
-<table class='table table-striped table-bordered'>
-  <thead>
-    <th>User</th>
-    <th>Message</th>
-    <th>Created Time</th>
-  </thead>
-  <tbody>
-    <% tweets.each do |tweet| %>
-      <tr>
-        <td><%= tweet.user.screen_name %></td>
-        <td><%= tweet.full_text %></td>
-        <td><%= tweet.created_at.in_time_zone('Asia/Manila').strftime('%b %d, %Y %H:%M:%S') %></td>
-      </tr>
-    <% end %>
-  </body>
-</table>
+
+<div class='list-group'>
+<% tweets.each do |tweet| %>
+  <div class='list-group-item'>
+    <h4 class="list-group-item-heading"><%= tweet.user.screen_name %> - <%= tweet.created_at.in_time_zone('Asia/Manila').strftime('%b %d, %Y %H:%M:%S') %></h4>
+    <p class="list-group-item-text"><%= tweet.full_text %></p>
+  </div>
+<% end %>
+</div>
+
 <%= paginate tweets, remote: true %>

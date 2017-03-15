@@ -11,18 +11,26 @@ Available Accounts:
 <% end %>
 <br/><br/>
 
-<%= form_tag search_home_index_path, id: 'search-form', method: :get, remote: true do %>
-  <%= label_tag :search %>
-  <%= text_field_tag :search %>
-  <%= label_tag :from %>
-  <%= date_field_tag(:from, (Date.today - 7.days), min: (Date.today - 7.days), max: Date.today, required: true) %>
-  <%= label_tag :to %>
-  <%= date_field_tag(:to, Date.today, min: (Date.today - 7.days), max: Date.today, required: true) %>
-  <%= label_tag :show_zero, "Show Zero Values" %>
-  <%= check_box_tag(:show_zero) %>
-  <%= submit_tag "Search" %>
+<% if @account.present? %>
+  <%= form_tag search_home_index_path, id: 'search-form', class: 'form-inline', method: :get, remote: true do %>
+    <div class='form-group'>
+      <%= label_tag :search %>
+      <%= text_field_tag :search, nil, class: 'form-control' %>
+    </div>
+    <div class='form-group'>
+      <%= label_tag :from %>
+      <%= date_field_tag(:from, (Date.today - 7.days), min: (Date.today - 7.days), max: Date.today, required: true, class: 'form-control') %>
+    </div>
+    <div class='form-group'>
+      <%= label_tag :to %>
+      <%= date_field_tag(:to, Date.today, min: (Date.today - 7.days), max: Date.today, required: true, class: 'form-control') %>
+    </div>
+    <%= submit_tag "Search", id: 'search-btn', class: 'btn btn-primary', disabled: (!@account.searchable) %>
+  <% end %>
+  <% unless @account.searchable %>
+    <div id='timer-container' data-time='<%= @account.restart.present? ? Time.at(@account.restart.to_i) : nil %>'></div>
+  <% end %>
 <% end %>
-
 <div id='results'>
 </div>
 

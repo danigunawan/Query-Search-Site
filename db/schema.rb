@@ -10,15 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170307012502) do
+ActiveRecord::Schema.define(version: 20170314014854) do
 
   create_table "accounts", force: :cascade do |t|
     t.string   "name"
     t.string   "nickname"
     t.string   "token"
     t.string   "token_secret"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.boolean  "searchable",   default: true
+    t.string   "restart"
   end
 
 end

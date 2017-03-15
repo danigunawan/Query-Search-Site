@@ -3,7 +3,7 @@
     <% if @graph_data.present? %>
       $('#results').empty().append("<%= escape_javascript(render partial: 'home/results_graph', locals: { data: @graph_data } )%>");
     <% end %>
-    $('#results').append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results, query: params[:search], count: @total_results, max_id: @max_id, prev_id: @prev_id, from_date: params[:from], to_date: params[:to], show_zero: params[:show_zero] } ) %>");
+    $('#results').append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results, next_page: @next_page, query: params[:search], count: @total_results, from_date: params[:from], to_date: params[:to] } ) %>");
   <% else %>
     $('#results').empty().html("No Results Found");
   <% end %>
@@ -11,6 +11,8 @@
   $('#results').empty().html("<%= @error %>");
 <% end %>
 <% if params[:search].present? %>
+$('#results').append("<%= escape_javascript(render partial: 'home/engine_results', locals: { query: params[:search], google_results: @google_results, google_page: @google_page }) %>")
 <% end %>
 
+$('#timer-container').empty();
 $('.loader').addClass('hidden');
