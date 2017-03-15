@@ -18,12 +18,15 @@ class HomeController < ApplicationController
           conditions = {}
           conditions[:result_type] = 'recent'
           conditions[:lang] = 'ja'
+          conditions[:count] = 100
           conditions[:since_id] = params[:since_id] if params[:since_id].present?
           conditions[:max_id] = params[:max_id] if params[:max_id].present?
           conditions[:until] = curr_time if curr_time != prev_time
+          conditions[:q] = @user_query
           begin
-            results = @client.search(@user_query, conditions).take(100)
-            @next_page = results.last.try(:id)
+            results, results_metadata = request_search(conditions)
+            @next_page = results_metadata[:next_results].scan(/max_id=\d+/).first.scan(/\d+/).first
+
             if results.present?
               @total_results = results.count
               @graph_data = get_graph_data(results, prev_time, curr_time)
@@ -50,6 +53,11 @@ class HomeController < ApplicationController
   end
 
   private
+
+  def request_search(conditions)
+    search_returns = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/search/tweets.json', conditions).perform
+    return search_returns[:statuses], search_returns[:search_metadata]
+  end
 
   def check_rate_limit
     if rate_limit_status = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/application/rate_limit_status.json', resources: "application,search").perform
@@ -80,9 +88,8 @@ class HomeController < ApplicationController
 
   def get_graph_data(tweets, prev_time=nil, curr_time=nil)
     hours_hash = {}
-
     begin
-      time_grouped = tweets.group_by{ |tweet| tweet.created_at.strftime('%Y-%m-%d %H') }
+      time_grouped = tweets.group_by{ |tweet| Time.parse(tweet[:created_at]).strftime('%Y-%m-%d %H') }
       time_grouped.each do |key, values|
         time_grouped_hour = Time.parse(key).in_time_zone('Asia/Manila').strftime('%Y-%m-%d %H:%M')
         hours_hash[time_grouped_hour] = values.count
