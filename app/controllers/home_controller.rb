@@ -13,16 +13,8 @@ class HomeController < ApplicationController
         if params[:search].present?
           curr_time = Date.parse(params[:to]).strftime("%Y-%m-%d")
           prev_time = Date.parse(params[:from]).strftime("%Y-%m-%d")
-          @user_query = "#{params[:search]} since:#{prev_time}"
 
-          conditions = {}
-          conditions[:result_type] = 'recent'
-          conditions[:lang] = 'ja'
-          conditions[:count] = 100
-          conditions[:since_id] = params[:since_id] if params[:since_id].present?
-          conditions[:max_id] = params[:max_id] if params[:max_id].present?
-          conditions[:until] = curr_time if curr_time != prev_time
-          conditions[:q] = @user_query
+          conditions = set_conditions(params)
           begin
             results, results_metadata = request_search(conditions)
             @next_page = results_metadata[:next_results].scan(/max_id=\d+/).first.scan(/\d+/).first
@@ -31,12 +23,11 @@ class HomeController < ApplicationController
               @total_results = results.count
               @graph_data = get_graph_data(results, prev_time, curr_time)
             end
-            array_results = results.to_a
-            @partial_results = Kaminari.paginate_array(array_results).page(params[:page]).per(20)
+            @partial_results = results
           rescue Twitter::Error::TooManyRequests
             @error = "Twitter Error: Too Many Requests"
           end
-          @google_results, @google_page = get_google_results(params[:search])
+          #@google_results, @google_page = get_google_results(params[:search])
         else
           @error = "No Search Query"
         end
@@ -53,6 +44,22 @@ class HomeController < ApplicationController
   end
 
   private
+
+  def set_conditions(params)
+    curr_time = Date.parse(params[:to]).strftime("%Y-%m-%d")
+    prev_time = Date.parse(params[:from]).strftime("%Y-%m-%d")
+    @user_query = "#{params[:search]} since:#{prev_time}"
+
+    conditions = {}
+    conditions[:result_type] = 'recent'
+    conditions[:lang] = 'ja'
+    conditions[:count] = 100
+    conditions[:since_id] = params[:since_id] if params[:since_id].present?
+    conditions[:max_id] = params[:max_id] if params[:max_id].present?
+    conditions[:until] = curr_time if curr_time != prev_time
+    conditions[:q] = @user_query
+    conditions
+  end
 
   def request_search(conditions)
     search_returns = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/search/tweets.json', conditions).perform

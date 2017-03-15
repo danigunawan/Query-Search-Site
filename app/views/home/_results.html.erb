@@ -1,5 +1,5 @@
 <h4>Number of Results: <%= count %></h4>
-<%= link_to "See Older Results", search_home_index_path(max_id: next_page, search: query, from: from_date, to: to_date), remote: true, class: 'pull-right' %>
+<%= link_to "Load More", search_home_index_path(max_id: next_page, search: query, from: from_date, to: to_date), remote: true, class: 'pull-right' %>
 <div class='clearfix'></div>
 
 <div class='list-group'>
@@ -10,5 +10,3 @@
   </div>
 <% end %>
 </div>
-
-<%= paginate tweets, remote: true %>
