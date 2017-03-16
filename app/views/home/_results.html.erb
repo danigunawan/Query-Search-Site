@@ -1,8 +1,3 @@
-<h4>Number of Results: <%= count %></h4>
-<%= link_to "Load More", search_home_index_path(max_id: next_page, search: query, from: from_date, to: to_date), remote: true, class: 'pull-right' %>
-<div class='clearfix'></div>
-
-<div class='list-group'>
 <% tweets.each do |tweet| %>
   <div class='list-group-item'>
     <h4 class="list-group-item-heading"><%= tweet[:user][:screen_name] %> - <%= Time.parse(tweet[:created_at]).in_time_zone('Asia/Manila').strftime('%b %d, %Y %H:%M:%S') %></h4>

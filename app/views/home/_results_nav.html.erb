@@ -1,0 +1,6 @@
+<div class='center-block'>
+<% if next_page.present? %>
+<%= link_to "Load More", search_home_index_path(max_id: next_page, search: query, from: from_date, to: to_date, prev_count: count, graph_data: true), remote: true, class: 'btn btn-primary load-more' %>
+<% end %>
+</div>
+<div class='clearfix'></div>

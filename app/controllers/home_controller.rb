@@ -17,17 +17,26 @@ class HomeController < ApplicationController
           conditions = set_conditions(params)
           begin
             results, results_metadata = request_search(conditions)
-            @next_page = results_metadata[:next_results].scan(/max_id=\d+/).first.scan(/\d+/).first
-
+            if results_metadata[:next_results].present?
+              @next_page = results_metadata[:next_results].scan(/max_id=\d+/).first.scan(/\d+/).first
+            end
             if results.present?
-              @total_results = results.count
+              @total_results = results.count + params[:prev_count].to_i
               @graph_data = get_graph_data(results, prev_time, curr_time)
+
+              if params[:graph_data].present?
+                prev_data = session[:graph_data]
+                @graph_data.merge!(prev_data){ |key, graph_data_val, prev_data_val| graph_data_val + prev_data_val.to_i }
+              else
+                session[:graph_data] = ""
+              end
+              session[:graph_data] = @graph_data.select {|key, value| value != 0 }
             end
             @partial_results = results
           rescue Twitter::Error::TooManyRequests
             @error = "Twitter Error: Too Many Requests"
           end
-          #@google_results, @google_page = get_google_results(params[:search])
+          @google_results, @google_page = get_google_results(params[:search])
         else
           @error = "No Search Query"
         end
@@ -66,24 +75,6 @@ class HomeController < ApplicationController
     return search_returns[:statuses], search_returns[:search_metadata]
   end
 
-  def check_rate_limit
-    if rate_limit_status = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/application/rate_limit_status.json', resources: "application,search").perform
-      if rate_limit_status[:resources][:application].values.first[:remaining] > 0
-        puts "Remaining Application: #{rate_limit_status[:resources][:application].values.first[:remaining]}\n\nRemaining Search: #{rate_limit_status[:resources][:search].values.first[:remaining]}"
-
-        any_remaining = rate_limit_status[:resources][:search].values.first[:remaining] > 0
-        @account.update_attributes(searchable: any_remaining, restart: any_remaining ? nil : rate_limit_status[:resources][:search].values.first[:reset])
-        any_remaining
-      else
-        @account.update_attributes(searchable: false, restart: rate_limit_status[:resources][:search].values.first[:reset])
-        false
-      end
-    else
-      @account.update_attributes(searchable: false, restart: rate_limit_status[:resources][:application].values.first[:reset])
-      false
-    end
-  end
-
   def get_google_results(query, start=1)
     uri = URI('https://www.googleapis.com/customsearch/v1')
     params = { :q => query, :cx => Credentials::GOOGLE_KEY, :key => Credentials::GOOGLE_API_KEY, start: start.to_i }
@@ -111,13 +102,5 @@ class HomeController < ApplicationController
     rescue Twitter::Error::TooManyRequests
     end
     hours_hash
-  end
-
-  def set_account
-    @account = if current_account.present?
-      Account.find_by(id: current_account)
-    else
-      nil
-    end
   end
 end

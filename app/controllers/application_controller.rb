@@ -26,4 +26,30 @@ class ApplicationController < ActionController::Base
       end
     end
   end
+
+  def set_account
+    @account = if current_account.present?
+      Account.find_by(id: current_account)
+    else
+      nil
+    end
+  end
+
+  def check_rate_limit
+    if rate_limit_status = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/application/rate_limit_status.json', resources: "application,search").perform
+      if rate_limit_status[:resources][:application].values.first[:remaining] > 0
+        puts "Remaining Application: #{rate_limit_status[:resources][:application].values.first[:remaining]}\n\nRemaining Search: #{rate_limit_status[:resources][:search].values.first[:remaining]}"
+
+        any_remaining = rate_limit_status[:resources][:search].values.first[:remaining] > 0
+        @account.update_attributes(searchable: any_remaining, restart: any_remaining ? nil : rate_limit_status[:resources][:search].values.first[:reset])
+        any_remaining
+      else
+        @account.update_attributes(searchable: false, restart: rate_limit_status[:resources][:search].values.first[:reset])
+        false
+      end
+    else
+      @account.update_attributes(searchable: false, restart: rate_limit_status[:resources][:application].values.first[:reset])
+      false
+    end
+  end
 end
