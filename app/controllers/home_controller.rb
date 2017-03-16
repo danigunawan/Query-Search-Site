@@ -89,14 +89,14 @@ class HomeController < ApplicationController
     begin
       time_grouped = tweets.group_by{ |tweet| Time.parse(tweet[:created_at]).strftime('%Y-%m-%d %H') }
       time_grouped.each do |key, values|
-        time_grouped_hour = Time.parse(key).strftime('%Y-%m-%d %H:%M')
+        time_grouped_hour = Time.parse(key).utc.strftime('%Y-%m-%d %H:%M %z')
         hours_hash[time_grouped_hour] = values.count
       end
 
       prev_time = prev_time.to_datetime.beginning_of_day.to_i
       curr_time = curr_time.to_datetime.end_of_day.to_i
       (prev_time..curr_time).step(1.hour) do |hour_record|
-        check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M')
+        check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M %z')
         hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)
       end
     rescue Twitter::Error::TooManyRequests
