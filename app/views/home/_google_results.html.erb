@@ -1,4 +1,4 @@
-<% if google_results['items'].present? %>
+<% if google_results.present? && google_results['items'].present? %>
   <% if google_page.to_i > 1 %>
     <%= link_to 'Prev', page_google_results_home_index_path(start: google_page.to_i - 10, search: query), remote: true %>
   <% end %>
