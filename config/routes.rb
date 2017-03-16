@@ -18,6 +18,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :accounts, only: [:destroy]
+
   get "/auth/twitter/callback" => "sessions#create"
 
 end

@@ -11,8 +11,8 @@ class HomeController < ApplicationController
     if @client.present?
       if check_rate_limit
         if params[:search].present?
-          curr_time = Date.parse(params[:to]).strftime("%Y-%m-%d")
-          prev_time = Date.parse(params[:from]).strftime("%Y-%m-%d")
+          curr_time = Date.parse(params[:until]).strftime("%Y-%m-%d")
+          prev_time = Date.parse(params[:since]).strftime("%Y-%m-%d")
 
           conditions = set_conditions(params)
           begin
@@ -55,8 +55,8 @@ class HomeController < ApplicationController
   private
 
   def set_conditions(params)
-    curr_time = Date.parse(params[:to]).strftime("%Y-%m-%d")
-    prev_time = Date.parse(params[:from]).strftime("%Y-%m-%d")
+    curr_time = Date.parse(params[:until]).strftime("%Y-%m-%d")
+    prev_time = Date.parse(params[:since]).strftime("%Y-%m-%d")
     @user_query = "#{params[:search]} since:#{prev_time}"
 
     conditions = {}
@@ -65,7 +65,7 @@ class HomeController < ApplicationController
     conditions[:count] = 100
     conditions[:since_id] = params[:since_id] if params[:since_id].present?
     conditions[:max_id] = params[:max_id] if params[:max_id].present?
-    conditions[:until] = curr_time if curr_time != prev_time
+    conditions[:until] = curr_time
     conditions[:q] = @user_query
     conditions
   end
@@ -89,12 +89,12 @@ class HomeController < ApplicationController
     begin
       time_grouped = tweets.group_by{ |tweet| Time.parse(tweet[:created_at]).strftime('%Y-%m-%d %H') }
       time_grouped.each do |key, values|
-        time_grouped_hour = Time.parse(key).in_time_zone('Asia/Manila').strftime('%Y-%m-%d %H:%M')
+        time_grouped_hour = Time.parse(key).strftime('%Y-%m-%d %H:%M')
         hours_hash[time_grouped_hour] = values.count
       end
 
-      prev_time = prev_time.to_datetime.in_time_zone('Asia/Manila').beginning_of_day.to_i
-      curr_time = curr_time.to_datetime.in_time_zone('Asia/Manila').end_of_day.to_i
+      prev_time = prev_time.to_datetime.beginning_of_day.to_i
+      curr_time = curr_time.to_datetime.end_of_day.to_i
       (prev_time..curr_time).step(1.hour) do |hour_record|
         check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M')
         hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)

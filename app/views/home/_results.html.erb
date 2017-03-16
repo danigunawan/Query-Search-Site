@@ -1,6 +1,6 @@
 <% tweets.each do |tweet| %>
   <div class='list-group-item'>
-    <h4 class="list-group-item-heading"><%= tweet[:user][:screen_name] %> - <%= Time.parse(tweet[:created_at]).in_time_zone('Asia/Manila').strftime('%b %d, %Y %H:%M:%S') %></h4>
+    <h4 class="list-group-item-heading"><%= tweet[:user][:screen_name] %> - <%= Time.parse(tweet[:created_at]).strftime('%b %d, %Y %H:%M:%S') %></h4>
     <p class="list-group-item-text"><%= tweet[:text] %></p>
   </div>
 <% end %>

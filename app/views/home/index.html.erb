@@ -5,12 +5,29 @@
 <br/><br/>
 <%= link_to 'Add Twitter Account', 'auth/twitter'%><br/>
 Available Accounts:
-<br/>
-<% @accounts.each do |account_record|%>
-  <%= link_to account_record.nickname, select_account_session_path(account_record.id)%>
-<% end %>
-<br/><br/>
+<% if @accounts.present? %>
+<table class='table table-striped table-bordered'>
+  <thead>
+    <th>Account Name</th>
+    <th>Actions</th>
+  </thead>
+  <tbody>
+    <% @accounts.each do |account_record|%>
+      <tr>
+        <td><%= account_record.nickname %></td>
+        <td>
+          <% unless @account == account_record%>
+            <%= link_to "Select", select_account_session_path(account_record.id), class: 'btn btn-primary'%>
+          <% end %>
+          <%= link_to "Remove", account_path(account_record.id), method: 'delete', class: 'btn btn-danger'%>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
 
+</table>
+
+<% end %>
 <% if @account.present? %>
   <%= form_tag search_home_index_path, id: 'search-form', class: 'form-inline', method: :get, remote: true do %>
     <div class='form-group'>
@@ -18,12 +35,12 @@ Available Accounts:
       <%= text_field_tag :search, nil, class: 'form-control' %>
     </div>
     <div class='form-group'>
-      <%= label_tag :from %>
-      <%= date_field_tag(:from, (Date.today - 7.days), min: (Date.today - 7.days), max: Date.today, required: true, class: 'form-control') %>
+      <%= label_tag :since %>
+      <%= date_field_tag(:since, (Date.today - 10.days), min: (Date.today - 10.days), max: (Date.today), required: true, class: 'form-control') %>
     </div>
     <div class='form-group'>
-      <%= label_tag :to %>
-      <%= date_field_tag(:to, Date.today, min: (Date.today - 7.days), max: Date.today, required: true, class: 'form-control') %>
+      <%= label_tag :until %>
+      <%= date_field_tag(:until, (Date.today + 1.day), min: (Date.today - 9.days), max: (Date.today + 1.day), required: true, class: 'form-control') %>
     </div>
     <%= submit_tag "Search", id: 'search-btn', class: 'btn btn-primary', disabled: (!@account.searchable) %>
   <% end %>

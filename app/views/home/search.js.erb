@@ -2,18 +2,23 @@
   <% if @partial_results.present? %>
     <% if @graph_data.present? %>
       $('#twitter-graph').empty().append("<%= escape_javascript(render partial: 'home/results_graph', locals: { data: @graph_data, count: @total_results } )%>");
-    <% end %>
-    $('#twitter-nav').empty().append("<%= escape_javascript(render partial: 'home/results_nav', locals: { next_page: @next_page, query: params[:search], count: @total_results, from_date: params[:from], to_date: params[:to] } ) %>");
-    <% if params[:graph_data].present? %>
-    $('#twitter-results .list-group').append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results } ) %>");
     <% else %>
-    $('#twitter-results .list-group').empty().append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results } ) %>");
+      $('#twitter-graph').empty();
+    <% end %>
+    $('#twitter-nav').empty().append("<%= escape_javascript(render partial: 'home/results_nav', locals: { next_page: @next_page, query: params[:search], count: @total_results, from_date: params[:since], to_date: params[:until] } ) %>");
+
+    <% if params[:graph_data].present? %>
+      $('#twitter-results .list-group').append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results } ) %>");
+    <% else %>
+      $('#twitter-results .list-group').empty().append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results } ) %>");
     <% end %>
   <% else %>
-    $('#twitter-results').empty().html("No Results Found");
+    $('#twitter-graph').empty();
+    $('#twitter-results .list-group').empty().html("No Results Found");
+    $('#twitter-nav').empty();
   <% end %>
 <% else %>
-  $('#twitter-results').empty().html("<%= @error %>");
+  $('#twitter-results .list-group').empty().html("<%= @error %>");
 <% end %>
 <% if params[:search].present? %>
 $('#engine-results').empty().append("<%= escape_javascript(render partial: 'home/engine_results', locals: { query: params[:search], google_results: @google_results, google_page: @google_page }) %>")
