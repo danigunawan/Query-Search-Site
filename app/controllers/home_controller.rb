@@ -89,7 +89,7 @@ class HomeController < ApplicationController
     begin
       time_grouped = tweets.group_by{ |tweet| Time.parse(tweet[:created_at]).strftime('%Y-%m-%d %H') }
       time_grouped.each do |key, values|
-        time_grouped_hour = Time.parse(key).utc.strftime('%Y-%m-%d %H:%M %z')
+        time_grouped_hour = Time.zone.parse(key).strftime('%Y-%m-%d %H:%M %z')
         hours_hash[time_grouped_hour] = values.count
       end
 
