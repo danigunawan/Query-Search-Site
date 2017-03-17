@@ -16,11 +16,11 @@ class HomeController < ApplicationController
 
           conditions = set_conditions(params)
           begin
-            results, results_metadata = request_search(conditions)
-            if results_metadata[:next_results].present?
-              @next_page = results_metadata[:next_results].scan(/max_id=\d+/).first.scan(/\d+/).first
-            end
+            results = request_search(conditions)
+
             if results.present?
+              @next_page = results.last[:id]
+              results.shift(1) if params[:max_id].present?
               @total_results = results.count + params[:prev_count].to_i
               @graph_data = get_graph_data(results, prev_time, curr_time)
 
@@ -72,7 +72,7 @@ class HomeController < ApplicationController
 
   def request_search(conditions)
     search_returns = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/search/tweets.json', conditions).perform
-    return search_returns[:statuses], search_returns[:search_metadata]
+    search_returns[:statuses]
   end
 
   def get_google_results(query, start=1)
@@ -94,7 +94,7 @@ class HomeController < ApplicationController
       end
 
       prev_time = prev_time.to_datetime.beginning_of_day.to_i
-      curr_time = curr_time.to_datetime.end_of_day.to_i
+      curr_time = (curr_time.to_datetime - 1.day).end_of_day.to_i
       (prev_time..curr_time).step(1.hour) do |hour_record|
         check_key = Time.at(hour_record).utc.strftime('%Y-%m-%d %H:%M %z')
         hours_hash[check_key] = 0 unless hours_hash.keys.include?(check_key)

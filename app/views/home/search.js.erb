@@ -13,15 +13,22 @@
       $('#twitter-results .list-group').empty().append("<%= escape_javascript(render partial: 'home/results', locals: { tweets: @partial_results } ) %>");
     <% end %>
   <% else %>
-    $('#twitter-graph').empty();
-    $('#twitter-results .list-group').empty().html("No Results Found");
+    <% if params[:max_id].blank? %>
+      $('#twitter-graph').empty();
+      $('#twitter-results .list-group').empty().html("No Results Found");
+    <% end %>
     $('#twitter-nav').empty();
   <% end %>
 <% else %>
+  $('#twitter-graph').empty();
   $('#twitter-results .list-group').empty().html("<%= @error %>");
+  $('#twitter-nav').empty();
 <% end %>
+
 <% if params[:search].present? %>
 $('#engine-results').empty().append("<%= escape_javascript(render partial: 'home/engine_results', locals: { query: params[:search], google_results: @google_results, google_page: @google_page }) %>")
+<% else %>
+$('#engine-results').empty()
 <% end %>
 
 $('#timer-container').empty();
