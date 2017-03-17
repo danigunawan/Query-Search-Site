@@ -9,6 +9,23 @@
   </head>
 
   <body>
-    <%= yield %>
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">SRMS Project</a>
+        </div>
+          <ul class="nav navbar-nav pull-right">
+            <% if @account.present? %>
+              <p class="navbar-text"><%= "Welcome, #{@account.nickname}" %></p>
+              <li><%= link_to 'Disconnect Account', terminate_account_sessions_path %></li>
+            <% else %>
+              <li><%= link_to 'Add Twitter Account', 'auth/twitter'%></li>
+            <% end %>
+          </ul>
+      </div>
+    </nav>
+    <div class='container'>
+      <%= yield %>
+    </div>
   </body>
 </html>

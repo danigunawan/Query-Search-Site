@@ -1,9 +1,3 @@
-<% if @account.present?%>
-  <%="Welcome, #{@account.nickname}" %>
-  <%= link_to 'Disconnect Account', terminate_account_sessions_path %>
-<% end %>
-<br/><br/>
-<%= link_to 'Add Twitter Account', 'auth/twitter'%><br/>
 Available Accounts:
 <% if @accounts.present? %>
 <table class='table table-striped table-bordered'>
