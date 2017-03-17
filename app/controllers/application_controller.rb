@@ -39,16 +39,16 @@ class ApplicationController < ActionController::Base
     if rate_limit_status = Twitter::REST::Request.new(@client, :get, 'https://api.twitter.com/1.1/application/rate_limit_status.json', resources: "application,search").perform
       if rate_limit_status[:resources][:application].values.first[:remaining] > 0
         any_remaining = rate_limit_status[:resources][:search].values.first[:remaining] > 0
-        restart_time = rate_limit_status[:resources][:search].values.first[:reset] rescue ( Time.now + 15.minutes if @account.restart.blank?)
+        restart_time = Time.at(rate_limit_status[:resources][:search].values.first[:reset]) rescue ( (Time.now + 15.minutes) if @account.restart.blank?)
         @account.update_attributes(searchable: any_remaining, restart: any_remaining ? nil : restart_time)
         any_remaining
       else
-        restart_time = rate_limit_status[:resources][:search].values.first[:reset] rescue ( Time.now + 15.minutes if @account.restart.blank?)
+        restart_time = Time.at(rate_limit_status[:resources][:search].values.first[:reset]) rescue ( (Time.now + 15.minutes) if @account.restart.blank?)
         @account.update_attributes(searchable: false, restart: restart_time)
         false
       end
     else
-      restart_time = rate_limit_status[:resources][:application].values.first[:reset] rescue ( Time.now + 15.minutes if @account.restart.blank?)
+      restart_time = Time.at(rate_limit_status[:resources][:application].values.first[:reset]) rescue ( (Time.now + 15.minutes) if @account.restart.blank?)
       @account.update_attributes(searchable: false, restart: restart_time)
       false
     end
