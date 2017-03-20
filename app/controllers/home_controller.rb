@@ -41,6 +41,7 @@ class HomeController < ApplicationController
           @error = "No Search Query"
         end
       else
+        @google_results, @google_page = get_google_results(params[:search]) if params[:search].present?
         @error = "User Cannot Request Anymore. Wait 15 minutes"
       end
     else
