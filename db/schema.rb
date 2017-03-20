@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170314014854) do
+ActiveRecord::Schema.define(version: 20170320073248) do
 
   create_table "accounts", force: :cascade do |t|
     t.string   "name"
@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 20170314014854) do
     t.datetime "updated_at",                  null: false
     t.boolean  "searchable",   default: true
     t.string   "restart"
+    t.text     "graph_data"
   end
 
 end
