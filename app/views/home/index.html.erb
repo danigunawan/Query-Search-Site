@@ -38,9 +38,7 @@ Available Accounts:
     </div>
     <%= submit_tag "Search", id: 'search-btn', class: 'btn btn-primary', disabled: (!@account.searchable) %>
   <% end %>
-  <% unless @account.searchable %>
-    <div id='timer-container' data-time='<%= @account.restart.present? ? (@account.restart) : nil %>'></div>
-  <% end %>
+  <div id='timer-container' data-time='<%= @account.restart.present? ? (@account.restart) : nil %>'></div>
 <% end %>
 <div id='results'>
   <div id='twitter-graph'></div>

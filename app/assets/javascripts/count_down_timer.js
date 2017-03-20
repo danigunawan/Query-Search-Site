@@ -1,5 +1,6 @@
-$(document).on('turbolinks:load', function(){
-  if($('#timer-container').data('time') != ""){
+var timer = function(){
+  if($('#timer-container').data('time')){
+    $('#search-btn').prop('disabled', true);
     var countDownDate = new Date($('#timer-container').data('time')).getTime()
     var x = setInterval(function() {
       var now = new Date().getTime();
@@ -14,8 +15,11 @@ $(document).on('turbolinks:load', function(){
       if (distance < 0) {
         $('#search-btn').prop('disabled', false);
         $('#timer-container').html("<div class='alert alert-success alert-dismissible'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>It is ok to search again</div>");
-        clearInterval(x)
+        $('#timer-container').data('time', '');
+        clearInterval(x);
       }
     }, 1000);
   }
-});
+}
+
+$(document).on('turbolinks:load ajax:complete', timer);

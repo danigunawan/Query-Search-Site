@@ -32,4 +32,7 @@ $('#engine-results').empty()
 <% end %>
 
 $('#timer-container').empty();
+<% unless @account.searchable %>
+  $('#timer-container').data('time', '<%= "#{ @account.restart }" %>');
+<% end %>
 $('.loader').addClass('hidden');
