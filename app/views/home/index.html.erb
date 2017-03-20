@@ -30,11 +30,11 @@ Available Accounts:
     </div>
     <div class='form-group'>
       <%= label_tag :since %>
-      <%= date_field_tag(:since, (Date.today - 10.days), min: (Date.today - 10.days), max: (Date.today), required: true, class: 'form-control') %>
+      <%= date_field_tag(:since, (Date.today - 10.days), min: (Date.today - 10.days), max: (Date.today), required: true, class: 'form-control datepicker') %>
     </div>
     <div class='form-group'>
       <%= label_tag :until %>
-      <%= date_field_tag(:until, (Date.today + 1.day), min: (Date.today - 9.days), max: (Date.today + 1.day), required: true, class: 'form-control') %>
+      <%= date_field_tag(:until, (Date.today + 1.day), min: (Date.today - 9.days), max: (Date.today + 1.day), required: true, class: 'form-control datepicker') %>
     </div>
     <%= submit_tag "Search", id: 'search-btn', class: 'btn btn-primary', disabled: (!@account.searchable) %>
   <% end %>

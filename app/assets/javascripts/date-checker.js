@@ -10,5 +10,19 @@ $(document).on('turbolinks:load', function(){
       event.preventDefault();
       return false
     }
-  })
-})
+  });
+
+  $('#since').datepicker({
+    startDate: $('#since').attr('min'),
+    endDate: $('#since').attr('max'),
+    format: 'yyyy-mm-dd',
+    autoclose: true
+  });
+
+  $('#until').datepicker({
+    startDate: $('#until').attr('min'),
+    endDate: $('#until').attr('max'),
+    format: 'yyyy-mm-dd',
+    autoclose: true
+  });
+});

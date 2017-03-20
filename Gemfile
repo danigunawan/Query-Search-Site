@@ -39,6 +39,7 @@ gem 'omniauth-twitter'
 gem "chartkick"
 gem 'kaminari'
 gem 'bootstrap-sass'
+gem 'bootstrap-datepicker-rails'
 
 
 group :development, :test do
