@@ -8,6 +8,7 @@ class ApplicationController < ActionController::Base
   def destroy_account
     @account = nil
     session['account_id'] = nil
+    session[:graph_data] = nil
   end
 
   def set_client
