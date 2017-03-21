@@ -40,6 +40,7 @@ gem "chartkick"
 gem 'kaminari'
 gem 'bootstrap-sass'
 gem 'bootstrap-datepicker-rails'
+gem 'activerecord-session_store', github: 'rails/activerecord-session_store'
 
 
 group :development, :test do

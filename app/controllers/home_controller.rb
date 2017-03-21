@@ -25,12 +25,15 @@ class HomeController < ApplicationController
               @graph_data = get_graph_data(results, prev_time, curr_time)
 
               if params[:graph_data].present?
-                prev_data = @account.graph_data
+                #prev_data = @account.graph_data
+                prev_data = session[:graph_data]
                 @graph_data.merge!(prev_data){ |key, graph_data_val, prev_data_val| graph_data_val + prev_data_val.to_i }
               else
-                @account.update_attributes(graph_data: nil)
+                session[:graph_data] = nil
+                #@account.update_attributes(graph_data: nil)
               end
-              @account.update_attributes(graph_data: @graph_data.select {|key, value| value != 0 })
+              session[:graph_data] = @graph_data.select {|key, value| value != 0 }
+              #@account.update_attributes(graph_data: @graph_data.select {|key, value| value != 0 })
             end
             @partial_results = results
           rescue Twitter::Error::TooManyRequests
